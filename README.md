@@ -10,6 +10,142 @@ Um banco de dados SQLite completo para uma plataforma de apostas online focada e
 - **Transações Financeiras**: Histórico completo de depósitos, saques, apostas e ganhos
 - **Auditoria**: Rastreamento de sessões e atividades dos usuários
 
+## 🗄️ Diagrama do Sistema de Banco de Dados
+
+```mermaid
+erDiagram
+    users {
+        int id PK
+        string username UK
+        string email UK
+        string password_hash
+        datetime created_at
+        datetime updated_at
+        string status
+        boolean email_verified
+    }
+    
+    user_profiles {
+        int id PK
+        int user_id FK
+        string full_name
+        date birth_date
+        string phone
+        text address
+        decimal balance
+        datetime created_at
+        datetime updated_at
+    }
+    
+    game_categories {
+        int id PK
+        string name
+        text description
+        string icon
+        datetime created_at
+        string status
+    }
+    
+    games {
+        int id PK
+        int category_id FK
+        string name
+        text description
+        decimal min_bet
+        decimal max_bet
+        decimal rtp_percentage
+        string provider
+        string game_url
+        string thumbnail_url
+        datetime created_at
+        datetime updated_at
+        string status
+    }
+    
+    bets {
+        int id PK
+        int user_id FK
+        int game_id FK
+        decimal amount
+        string result
+        decimal payout
+        string status
+        json bet_data
+        datetime created_at
+        datetime settled_at
+    }
+    
+    game_sessions {
+        int id PK
+        int user_id FK
+        int game_id FK
+        datetime started_at
+        datetime ended_at
+        decimal total_bets
+        decimal total_winnings
+        int session_duration
+    }
+    
+    transactions {
+        int id PK
+        int user_id FK
+        string type
+        decimal amount
+        string status
+        string reference_id
+        int payment_method_id FK
+        text description
+        datetime created_at
+        datetime processed_at
+    }
+    
+    payment_methods {
+        int id PK
+        string name
+        string type
+        string status
+        decimal processing_fee
+        decimal min_amount
+        decimal max_amount
+        datetime created_at
+    }
+    
+    user_sessions {
+        int id PK
+        int user_id FK
+        string session_token UK
+        datetime login_at
+        datetime logout_at
+        string ip_address
+        text user_agent
+        boolean is_active
+    }
+    
+    users ||--o{ user_profiles : "has profile"
+    users ||--o{ bets : "places bets"
+    users ||--o{ game_sessions : "has sessions"
+    users ||--o{ transactions : "makes transactions"
+    users ||--o{ user_sessions : "has sessions"
+    
+    game_categories ||--o{ games : "contains"
+    games ||--o{ bets : "receives bets"
+    games ||--o{ game_sessions : "played in"
+    
+    payment_methods ||--o{ transactions : "used for"
+    
+    users }o--|| user_profiles : "1:1 relationship"
+    users }o--o{ bets : "1:N relationship"
+    users }o--o{ game_sessions : "1:N relationship"
+    users }o--o{ transactions : "1:N relationship"
+    users }o--o{ user_sessions : "1:N relationship"
+    
+    game_categories }o--o{ games : "1:N relationship"
+    games }o--o{ bets : "1:N relationship"
+    games }o--o{ game_sessions : "1:N relationship"
+    
+    payment_methods }o--o{ transactions : "1:N relationship"
+```
+
 ## 📁 Estrutura do Projeto
 
 ```
