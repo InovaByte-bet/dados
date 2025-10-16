@@ -2,6 +2,22 @@
 
 Um banco de dados SQLite completo para uma plataforma de apostas online focada em jogos de casino (slots, poker, roleta, blackjack, etc.).
 
+## 📋 Sumário
+
+### 👥 Para Equipes de Desenvolvimento
+- [🔧 **Equipe Backend**](#-para-equipe-backend) - Setup, integração e APIs
+- [🎨 **Equipe Frontend**](#-para-equipe-frontend) - Configuração e componentes
+- [🔗 **Equipe de Integração**](#-para-equipe-de-integração) - Conectar sistemas
+
+### 📚 Documentação Técnica
+- [🎯 Características](#-características) - Funcionalidades do banco
+- [🗄️ Diagrama do Sistema](#️-diagrama-do-sistema-de-banco-de-dados) - Estrutura das tabelas
+- [📁 Estrutura do Projeto](#-estrutura-do-projeto) - Organização dos arquivos
+- [🚀 Como Usar](#-como-usar) - Setup básico
+- [🧪 Dados de Teste](#-dados-de-exemplo) - Usuários e dados de exemplo
+
+---
+
 ## 🎯 Características
 
 - **Foco em Casino**: Especializado em jogos de casino (slots, poker, roleta, blackjack, baccarat, dados)
@@ -171,144 +187,108 @@ python database/init_db.py meu_banco.db
 
 ---
 
-## 👨‍💻 Instruções para o Time de Desenvolvimento
+## 🔧 Para Equipe Backend
 
-### 🎯 Visão Geral
-Este banco de dados SQLite foi projetado para suportar uma plataforma completa de apostas online focada em jogos de casino. Siga estas instruções para integrar o banco ao seu projeto backend e frontend.
+### 📍 Repositório do Backend
+**🔗 Backend Repository:** [https://github.com/InovaByte-bet/backend.git](https://github.com/InovaByte-bet/backend.git)
 
-### 📋 Pré-requisitos
-- Python 3.7+ instalado
-- Node.js 16+ (para frontend)
-- Git configurado
-- Editor de código (VS Code recomendado)
+O time de backend já está desenvolvendo com **Python + FastAPI** e implementou:
+- ✅ API para Blackjack
+- ✅ API para Aviator (Crash Game)
+- ✅ Estrutura modular por jogo
 
----
+### 🎯 Suas Tarefas Principais
 
-### 🔧 Setup para Desenvolvedores Backend
-
-#### Passo 1: Clonar e Configurar o Banco
+#### 1. Integrar com Este Banco de Dados
 ```bash
-# 1. Clone o repositório (se ainda não fez)
-git clone <url-do-repositorio>
+# 1. Clone este repositório de dados
+git clone <url-do-repositorio-dados>
 cd dados
 
-# 2. Navegue até a pasta do banco
+# 2. Execute o setup do banco
 cd database
-
-# 3. Execute o script de inicialização
 python init_db.py
+
+# 3. Integre com seu backend FastAPI
 ```
 
-#### Passo 2: Verificar a Instalação
-```bash
-# Verifique se o banco foi criado
-ls -la casino_betting.db
-
-# Execute uma consulta de teste
-sqlite3 casino_betting.db "SELECT COUNT(*) FROM users;"
-```
-
-#### Passo 3: Integração com Backend (Node.js/Express)
-```javascript
-// 1. Instale as dependências
-npm install sqlite3 express bcryptjs jsonwebtoken
-
-// 2. Configure a conexão com o banco
-const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database('./database/casino_betting.db');
-
-// 3. Exemplo de consulta para buscar usuários
-app.get('/api/users', (req, res) => {
-    db.all("SELECT id, username, email, created_at FROM users WHERE status = 'active'", 
-        (err, rows) => {
-            if (err) {
-                res.status(500).json({ error: err.message });
-                return;
-            }
-            res.json(rows);
-        });
-});
-```
-
-#### Passo 4: Integração com Backend (Python/Flask)
+#### 2. Configuração de Conexão (Python/SQLite)
 ```python
-# 1. Instale as dependências
-pip install sqlite3 flask flask-cors
-
-# 2. Configure a conexão
+# Adicione ao seu backend FastAPI
 import sqlite3
-from flask import Flask, jsonify
+from fastapi import FastAPI
 
-app = Flask(__name__)
-DB_PATH = './database/casino_betting.db'
+app = FastAPI()
+DB_PATH = '../dados/database/casino_betting.db'
 
-# 3. Exemplo de consulta
-@app.route('/api/users')
-def get_users():
+def get_db_connection():
     conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, username, email, created_at FROM users WHERE status = 'active'")
+    conn.row_factory = sqlite3.Row
+    return conn
+
+# Exemplo de endpoint para usuários
+@app.get("/api/users")
+async def get_users():
+    conn = get_db_connection()
+    cursor = conn.execute("SELECT * FROM users WHERE status = 'active'")
     users = cursor.fetchall()
     conn.close()
-    return jsonify(users)
+    return [dict(user) for user in users]
 ```
 
-#### Passo 5: APIs Essenciais para Implementar
-```javascript
-// Endpoints recomendados para o backend:
-
-// Autenticação
+#### 3. APIs que Vocês Precisam Implementar
+```python
+# Autenticação (integrar com sistema de usuários)
 POST /api/auth/login
 POST /api/auth/register
-POST /api/auth/logout
 
-// Usuários
+# Gestão de Usuários
 GET /api/users/profile
 PUT /api/users/profile
 GET /api/users/balance
 
-// Jogos
-GET /api/games
-GET /api/games/:id
-GET /api/games/category/:categoryId
-
-// Apostas
+# Sistema de Apostas (integrar com Blackjack/Aviator)
 POST /api/bets
 GET /api/bets/history
 GET /api/bets/statistics
 
-// Transações
+# Transações Financeiras
 POST /api/transactions/deposit
 POST /api/transactions/withdrawal
 GET /api/transactions/history
 
-// Sessões de Jogo
+# Sessões de Jogo
 POST /api/sessions/start
 PUT /api/sessions/:id/end
-GET /api/sessions/history
 ```
+
+#### 4. Dados de Teste Disponíveis
+- **Usuários:** `testuser1`, `testuser2`, `vipuser` (senha: `password123`)
+- **Jogos:** 25+ jogos já cadastrados
+- **Transações:** Histórico de exemplo
 
 ---
 
-### 🎨 Setup para Desenvolvedores Frontend
+## 🎨 Para Equipe Frontend
 
-#### Passo 1: Configurar o Ambiente
+### 🎯 Suas Tarefas Principais
+
+#### 1. Setup do Ambiente
 ```bash
-# 1. Instale o Node.js e npm
-# 2. Crie um novo projeto React/Vue/Angular
+# 1. Crie seu projeto React/Vue/Angular
 npx create-react-app casino-frontend
 cd casino-frontend
 
-# 3. Instale bibliotecas úteis
-npm install axios react-router-dom @mui/material @emotion/react @emotion/styled
+# 2. Instale dependências essenciais
+npm install axios react-router-dom @mui/material
 ```
 
-#### Passo 2: Configurar as Chamadas de API
+#### 2. Configurar Conexão com Backend
 ```javascript
 // src/services/api.js
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:3001/api'; // Ajuste conforme seu backend
+const API_BASE_URL = 'http://localhost:8000/api'; // Backend FastAPI
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -317,93 +297,79 @@ const api = axios.create({
   },
 });
 
-// Interceptor para adicionar token de autenticação
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('authToken');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
 export default api;
 ```
 
-#### Passo 3: Componentes Principais para Implementar
-```javascript
-// src/components/GameList.jsx
-import React, { useState, useEffect } from 'react';
-import api from '../services/api';
-
-const GameList = () => {
-  const [games, setGames] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchGames = async () => {
-      try {
-        const response = await api.get('/games');
-        setGames(response.data);
-      } catch (error) {
-        console.error('Erro ao carregar jogos:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchGames();
-  }, []);
-
-  return (
-    <div>
-      {loading ? (
-        <p>Carregando jogos...</p>
-      ) : (
-        <div className="games-grid">
-          {games.map(game => (
-            <div key={game.id} className="game-card">
-              <h3>{game.name}</h3>
-              <p>{game.description}</p>
-              <p>Aposta mínima: R$ {game.min_bet}</p>
-              <p>Aposta máxima: R$ {game.max_bet}</p>
-              <button onClick={() => playGame(game.id)}>
-                Jogar Agora
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default GameList;
-```
-
-#### Passo 4: Páginas Essenciais para Criar
+#### 3. Componentes Essenciais para Desenvolver
 ```
 src/
 ├── components/
-│   ├── GameList.jsx
-│   ├── UserProfile.jsx
-│   ├── BettingHistory.jsx
-│   ├── TransactionHistory.jsx
-│   └── GameSession.jsx
+│   ├── GameList.jsx          # Lista de jogos disponíveis
+│   ├── UserProfile.jsx       # Perfil do usuário
+│   ├── BettingHistory.jsx    # Histórico de apostas
+│   ├── TransactionHistory.jsx # Histórico financeiro
+│   ├── GameSession.jsx       # Interface dos jogos
+│   └── BlackjackGame.jsx     # Interface específica do Blackjack
 ├── pages/
-│   ├── Home.jsx
-│   ├── Games.jsx
-│   ├── Profile.jsx
-│   ├── History.jsx
-│   └── Login.jsx
+│   ├── Home.jsx              # Página inicial
+│   ├── Games.jsx             # Catálogo de jogos
+│   ├── Profile.jsx           # Perfil do usuário
+│   ├── History.jsx           # Históricos
+│   └── Login.jsx             # Autenticação
 └── services/
-    └── api.js
+    └── api.js                # Configuração da API
+```
+
+#### 4. Integração com Jogos
+- **Blackjack:** Conecte com `/blackjack/*` endpoints
+- **Aviator:** Conecte com `/aviator/*` endpoints
+- **Dados do usuário:** Use endpoints de usuários e transações
+
+---
+
+## 🔗 Para Equipe de Integração
+
+### 🎯 Suas Tarefas Principais
+
+#### 1. Conectar os Sistemas
+```mermaid
+graph TD
+    A[Frontend React] --> B[Backend FastAPI]
+    B --> C[Banco SQLite]
+    B --> D[Jogos Blackjack]
+    B --> E[Jogos Aviator]
+    C --> F[Dados de Usuários]
+    C --> G[Histórico de Apostas]
+    C --> H[Transações]
+```
+
+#### 2. Fluxo de Integração
+1. **Backend ↔ Banco:** APIs REST conectando com SQLite
+2. **Frontend ↔ Backend:** Chamadas HTTP para FastAPI
+3. **Jogos ↔ Sistema:** Integração dos jogos com dados de usuários
+
+#### 3. Pontos de Integração Críticos
+```python
+# 1. Autenticação unificada
+# 2. Saldo de usuários sincronizado
+# 3. Histórico de apostas centralizado
+# 4. Transações financeiras rastreadas
+```
+
+#### 4. Testes de Integração
+```bash
+# Teste completo do fluxo
+1. Usuário faz login (Frontend → Backend → Banco)
+2. Usuário joga Blackjack (Frontend → Backend → Jogo → Banco)
+3. Aposta é registrada (Jogo → Backend → Banco)
+4. Saldo é atualizado (Banco → Backend → Frontend)
 ```
 
 ---
 
-### 🗄️ Consultas Úteis para Desenvolvimento
+## 🗄️ Consultas Úteis para Desenvolvimento
 
-#### Consultas de Teste Rápido
+### Consultas de Teste Rápido
 ```sql
 -- Verificar estrutura do banco
 .tables
@@ -425,7 +391,7 @@ JOIN game_categories gc ON g.category_id = gc.id
 ORDER BY gc.name, g.name;
 ```
 
-#### Consultas para Dashboard
+### Consultas para Dashboard
 ```sql
 -- Estatísticas gerais da plataforma
 SELECT 
@@ -438,61 +404,41 @@ SELECT
 
 ---
 
-### 🔄 Fluxo de Trabalho Recomendado
+## 🧪 Dados de Teste Disponíveis
 
-#### Para Backend Developers:
-1. **Setup inicial**: Execute `python database/init_db.py`
-2. **Explore o banco**: Use as consultas em `queries.sql`
-3. **Implemente APIs**: Comece com autenticação e CRUD básico
-4. **Teste**: Use os dados de exemplo incluídos
-5. **Documente**: Documente suas APIs com Swagger/OpenAPI
-
-#### Para Frontend Developers:
-1. **Setup inicial**: Configure o ambiente de desenvolvimento
-2. **Mock APIs**: Use dados estáticos inicialmente
-3. **Integre APIs**: Conecte com o backend quando estiver pronto
-4. **Teste**: Use os usuários de teste (testuser1, testuser2, vipuser)
-5. **Responsivo**: Garanta compatibilidade mobile
-
----
-
-### 🧪 Dados de Teste Disponíveis
-
-O banco inclui dados de exemplo prontos para desenvolvimento:
-
-**Usuários de Teste:**
+### Usuários de Teste
 - `testuser1` / `test1@example.com` (Saldo: R$ 1.000,00)
 - `testuser2` / `test2@example.com` (Saldo: R$ 2.500,00)
 - `vipuser` / `vip@example.com` (Saldo: R$ 10.000,00)
-- Senha padrão para todos: `password123`
+- **Senha padrão:** `password123`
 
-**Jogos Disponíveis:**
+### Jogos Disponíveis
 - 25+ jogos de casino em 8 categorias
 - Slots, Poker, Roleta, Blackjack, Baccarat, Dados
 - Jogos ao vivo e jackpots progressivos
 
-**Transações e Apostas:**
+### Transações e Apostas
 - Histórico de depósitos e apostas
 - Sessões de jogo de exemplo
 - Dados para testar relatórios e analytics
 
 ---
 
-### 🚨 Pontos Importantes
+## 🚨 Pontos Importantes para Todas as Equipes
 
-#### Segurança:
+### Segurança
 - **NUNCA** commite senhas reais no código
 - Use variáveis de ambiente para configurações sensíveis
 - Implemente validação de entrada em todas as APIs
 - Use HTTPS em produção
 
-#### Performance:
+### Performance
 - O banco inclui índices otimizados
 - Use paginação em listagens longas
 - Implemente cache para dados que mudam pouco
 - Monitore queries lentas
 
-#### Escalabilidade:
+### Escalabilidade
 - SQLite é ótimo para desenvolvimento e testes
 - Para produção, considere PostgreSQL ou MySQL
 - Implemente migrações de banco de dados
@@ -500,16 +446,9 @@ O banco inclui dados de exemplo prontos para desenvolvimento:
 
 ---
 
-### 📞 Suporte e Dúvidas
+## 📞 Suporte e Dúvidas
 
-Se encontrar problemas ou tiver dúvidas:
-
-1. **Verifique a documentação**: Leia este README completamente
-2. **Execute os testes**: Use `python database/init_db.py` para verificar
-3. **Consulte as queries**: Veja exemplos em `database/queries.sql`
-4. **Teste com dados de exemplo**: Use os usuários e jogos pré-carregados
-
-**Comandos úteis para debug:**
+### Comandos Úteis para Debug
 ```bash
 # Verificar se o banco existe e está íntegro
 sqlite3 database/casino_betting.db ".schema"
@@ -520,6 +459,11 @@ sqlite3 database/casino_betting.db "SELECT * FROM users LIMIT 5;"
 # Recriar o banco se necessário
 rm database/casino_betting.db && python database/init_db.py
 ```
+
+### Links Importantes
+- **Backend Repository:** [https://github.com/InovaByte-bet/backend.git](https://github.com/InovaByte-bet/backend.git)
+- **Database Repository:** Este repositório (dados)
+- **Documentação FastAPI:** [https://fastapi.tiangolo.com/](https://fastapi.tiangolo.com/)
 
 ### 2. Estrutura das Tabelas
 
