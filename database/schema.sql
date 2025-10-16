@@ -15,22 +15,17 @@ CREATE TABLE users (
     email VARCHAR(100) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'suspended', 'banned')),
     email_verified BOOLEAN DEFAULT FALSE
 );
 
--- User profiles - Extended user information
+-- User profiles - Essential user information
 CREATE TABLE user_profiles (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
     full_name VARCHAR(100),
-    birth_date DATE,
-    phone VARCHAR(20),
-    address TEXT,
     balance DECIMAL(10,2) DEFAULT 0.00,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
@@ -43,7 +38,6 @@ CREATE TABLE game_categories (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(50) NOT NULL,
     description TEXT,
-    icon VARCHAR(100),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'inactive'))
 );
@@ -58,10 +52,7 @@ CREATE TABLE games (
     max_bet DECIMAL(8,2) NOT NULL DEFAULT 1000.00,
     rtp_percentage DECIMAL(5,2) DEFAULT 95.00, -- Return to Player percentage
     provider VARCHAR(50),
-    game_url VARCHAR(255),
-    thumbnail_url VARCHAR(255),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'maintenance')),
     FOREIGN KEY (category_id) REFERENCES game_categories(id)
 );
@@ -127,7 +118,6 @@ CREATE TABLE transactions (
     payment_method_id INTEGER,
     description TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    processed_at DATETIME,
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (payment_method_id) REFERENCES payment_methods(id)
 );
@@ -143,8 +133,6 @@ CREATE TABLE user_sessions (
     session_token VARCHAR(255) UNIQUE NOT NULL,
     login_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     logout_at DATETIME,
-    ip_address VARCHAR(45),
-    user_agent TEXT,
     is_active BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
@@ -185,27 +173,3 @@ CREATE INDEX idx_user_sessions_user_id ON user_sessions(user_id);
 CREATE INDEX idx_user_sessions_token ON user_sessions(session_token);
 CREATE INDEX idx_user_sessions_active ON user_sessions(is_active);
 
--- =============================================
--- TRIGGERS FOR AUTOMATIC UPDATES
--- =============================================
-
--- Update user_profiles.updated_at when balance changes
-CREATE TRIGGER update_user_profile_balance
-    AFTER UPDATE OF balance ON user_profiles
-    BEGIN
-        UPDATE user_profiles SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
-    END;
-
--- Update games.updated_at when game data changes
-CREATE TRIGGER update_games_updated_at
-    AFTER UPDATE ON games
-    BEGIN
-        UPDATE games SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
-    END;
-
--- Update users.updated_at when user data changes
-CREATE TRIGGER update_users_updated_at
-    AFTER UPDATE ON users
-    BEGIN
-        UPDATE users SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
-    END;
